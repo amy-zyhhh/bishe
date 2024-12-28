@@ -3,9 +3,9 @@ tic
 
 N = 20;
 a = 1;
-b = 0;
-c = -1;
-d = 1;
+b = 2;
+c = 1;
+d = 3;
 
 k__0 = 1;
 k__1 = 6;
@@ -79,38 +79,44 @@ title("|\lambda|-k_2", pm1)
 xlabel("k_2")
 ylabel("|\lambda|")
 
-%%%%%%%%%%%%%%%%%
-i = 1;
-k__2 = OBC_k__2(i);
-for j = 1:max(size(OBC_lambda(:,i)))
-    lambda = OBC_lambda(j,i);
-    B = double(subs(A));
-    OBC_d(:,j) = null(B, 1e-5);
+OBC_lambda2 = zeros(1,N);
+for i = 1:p
+    k__2 = OBC_k__2(i);
+    num = 1;
+    for j = 1:max(size(OBC_lambda(:,i)))
+        lambda = OBC_lambda(j,i);
+        B = double(subs(A));
+        temp = null(B, 1e-1); % 对误差好像很敏感啊
+        lambda_num(j) = max(size(temp(1,:)));
+        % OBC_d的列表示特征向量，页表示刚度
+        OBC_d(:,num:num + lambda_num(j) - 1, i) = temp;
+        num = num + lambda_num(j);
+        temp = max(size(OBC_lambda2(:,i))); % 这里temp变了
+        if temp == 1 % 为了使初始值不影响赋值
+            temp = temp - 1;
+        end
+        for k = 1:lambda_num(j) % 重根计重数
+            OBC_lambda2(k + temp,i) = lambda;
+        end
+    end
 end
 
-j = 10;
-lambda = OBC_lambda(j,i);
+i = 16; % 特征向量的个数
+j = 6; % k__2的取值
+lambda = OBC_lambda(i, j);
 figure
 pm2 = sprintf('k_0 = %d, k_1 = %d, lambda = %d, e_1(n) = (%d, %d), e_2(m) = (%d, %d)', k__0, k__1, lambda, a, b, c, d);
-scatter(1:N, OBC_d(:,i))
+scatter(1:N, OBC_d(:,i,j))
 title("d-m",pm2)
 xlabel("m")
 ylabel("\lambda")
 
-[X,Y] = meshgrid(1:N,vpa(OBC_lambda(1:N,i)));
+i = 1; % 这里是k__2位置处的云图
+[X,Y] = meshgrid(1:N,vpa(OBC_lambda2(1:N,i)));
 Y = double(Y);
-
-% OBC_d归一化，分离对称和反对称
-u = 1;
-v = 1;
-for i = 1:2*N
-    if OBC_d(1, i)*OBC_d(N, i) > 0
-        OBC_d2(u,:) = OBC_d(:, i)./max(OBC_d(:, i));
-        u = u + 1;
-    else
-        OBC_d1(v,:) = OBC_d(:, i)./max(OBC_d(:, i));
-        v = v + 1;
-    end
+% OBC_d归一化
+for j = 1:N
+        OBC_d2(j,:) = OBC_d(:, j, i)./max(OBC_d(:, j, i));
 end
 
 figure

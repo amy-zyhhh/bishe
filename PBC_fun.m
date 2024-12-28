@@ -1,11 +1,11 @@
-clear; close all; clc;
+% clear; close all; clc;
 
 flag = 0;
 a = 1;
-b = 2;
+b = 0;
 c = 2;
-d = 6;
-dr = 2;
+d = 2;
+dr = 0;
 ds = 1;
 k__0 = 1;
 k__1 = 6;
